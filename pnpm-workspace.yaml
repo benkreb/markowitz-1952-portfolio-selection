@@ -1,0 +1,3 @@
+allowBuilds:
+  # The compiler behind tsx and vitest.
+  esbuild: true

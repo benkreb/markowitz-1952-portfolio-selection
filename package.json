@@ -1,0 +1,32 @@
+{
+  "name": "markowitz-1952-portfolio-selection",
+  "version": "1.0.0",
+  "description": "Markowitz (1952) portfolio selection: critical line algorithm, efficient frontier, and an estimation error experiment.",
+  "license": "MIT",
+  "author": "Berk Günberk",
+  "type": "module",
+  "private": false,
+  "engines": {
+    "node": ">=22.11.0"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "example:frontier": "tsx examples/frontier.ts",
+    "example:estimation": "tsx examples/estimation.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "22.20.0",
+    "eslint": "9.39.5",
+    "fast-check": "4.9.0",
+    "tsx": "4.23.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.65.0",
+    "vitest": "4.1.10"
+  }
+}

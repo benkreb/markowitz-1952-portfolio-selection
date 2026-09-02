@@ -28,6 +28,12 @@ Measured over **2000** randomly generated valid inputs (3 to 5 assets), the larg
 
 The constrained case has no analytic solution, so it is compared against a third, independent method: every active-set subset is solved separately by Cramer's rule and the feasible one with the lowest variance is taken. That reference shares no code with the algorithm.
 
+Both of those checks ask the same shape of question: given a target expected return, is the minimum-variance portfolio correct? Neither asks whether the traversal **visits the whole frontier** — and a check that walks the algorithm's own turning points cannot notice that a turning point is missing.
+
+That gap was not hypothetical. The event detection was missing a direction test: it found the λ at which a weight crosses its lower bound, but not whether the weight was moving *toward* that bound or away from it. A weight moving away produces a root in the past, which was being treated as a real event, and the asset was dropped from the free set. Its reduced cost then stayed negative — a KKT violation — and the rest of the frontier came out non-optimal. On one five-asset input the best attainable ratio on the frontier was 0.8290 where 1.2587 is reachable. Every test in this repository stayed green throughout.
+
+There is now a fourth check that never touches the frontier: it samples the simplex directly, refines the best point, and maximises `(μ − d)/σ` — an objective with no target return, so no matching band is needed. It runs over 300 random positive-definite inputs and fails on the old code. The count of trials was chosen by measurement rather than taste: at 40 trials it did not catch the defect, because the failure rate is under 1%.
+
 ### The estimation error experiment
 
 The paper assumes `μ` and `Σ` are known, and says so plainly on its last page. In practice both are estimated. The experiment draws a sample of `T` periods, estimates the moments, optimises with the estimates, and then evaluates the resulting weights under the **true** parameters. The loss is split by which input carried the error, by decomposing the covariance into standard deviations and correlations and taking one from the sample and the other from the truth.
@@ -52,7 +58,7 @@ This is an implementation of one paper, not a portfolio management library.
 
 ```
 pnpm install
-pnpm test              # 53 tests, including the property-based verification
+pnpm test              # 55 tests, including the property-based verification
 pnpm typecheck
 pnpm lint
 pnpm example:frontier

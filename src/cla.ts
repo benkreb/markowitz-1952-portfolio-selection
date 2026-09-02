@@ -216,11 +216,26 @@ export function criticalLine(
     let leaving: number[] = [];
     let entering: number[] = [];
 
-    // (a) Serbest bir agirlik tabana iniyor mu?
+    /*
+      (a) Serbest bir agirlik tabana iniyor mu?
+
+      KOKUN VARLIGI YETMEZ, YONU DE DOGRU OLMALI. `X_k(λ) = p + λq` afin bir
+      fonksiyon ve λ AZALARAK ilerliyoruz. Agirlik tabana ancak `q > 0` iken
+      YAKLASIR; `q < 0` iken λ dustukce agirlik ARTAR, yani taban cizgisini
+      ters yonden kesiyor ve bulunan kok gecmiste kalmis sahte bir olaydir.
+
+      Yon kontrolu yokken bu sahte olaylar gercek sanilip varlik serbest
+      kumeden ATILIYORDU. Sonucu olculdu: atilan varligin indirgenmis maliyeti
+      negatif kaliyor (KKT ihlali) ve sinirin o parcasi artik etkin degil —
+      algoritma ulasilabilir, daha iyi portfoyleri hic gormuyordu.
+    */
     for (let k = 0; k < free.length; k += 1) {
       const index = free[k];
       if (index === undefined) continue;
-      const root = rootOf((segment.p[k] ?? 0) - bounds.lower(index), segment.q[k] ?? 0);
+      const slope = segment.q[k] ?? 0;
+      // Yalnizca tabana DOGRU hareket eden agirlik ayrilabilir.
+      if (slope <= EPSILON) continue;
+      const root = rootOf((segment.p[k] ?? 0) - bounds.lower(index), slope);
       if (root === null || root >= lambda - EPSILON || root < -EPSILON) continue;
 
       if (root > nextLambda + EPSILON) {
@@ -232,10 +247,18 @@ export function criticalLine(
       }
     }
 
-    // (b) Disaridaki bir varlik giriyor mu?
+    /*
+      (b) Disaridaki bir varlik giriyor mu?
+
+      Ayni yon kontrolu burada da gerekiyor. `r_j(λ) = α + λβ` ve tabandaki
+      bir varlik icin KKT `r_j ≥ 0` istiyor. λ azalirken `r_j` ancak `β > 0`
+      iken sifira DUSER; `β < 0` iken kok, `r_j`'nin sifirin ustune ciktigi
+      yerdir ve giris olayi degildir.
+    */
     for (let j = 0; j < size; j += 1) {
       if (free.includes(j)) continue;
       const { alpha, beta } = reducedCost(j, free, segment, means, covariance);
+      if (beta <= EPSILON) continue;
       const root = rootOf(alpha, beta);
       if (root === null || root >= lambda - EPSILON || root < -EPSILON) continue;
 
